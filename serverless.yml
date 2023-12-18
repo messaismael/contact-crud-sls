@@ -1,0 +1,66 @@
+org: messaismael
+app: sls-crud
+service: sls-crud
+frameworkVersion: "3"
+
+custom:
+  tableName: 'contacts-table-${sls:stage}'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:*
+          Resource: 
+            - Fn::GetAtt: [ ContactTable, Arn ]
+  environment:
+    TABLE_NAME: ${self:custom.tableName}
+    
+functions:
+  list:
+    handler: handler.getAllContact
+    events:
+      - httpApi:
+          path: /contact
+          method: get 
+ 
+  create:
+    handler: handler.createContact
+    events:
+      - httpApi:
+          path: /contact
+          method: post 
+
+  update:
+    handler: handler.updateContact
+    events:
+      - httpApi:
+          path: /contact/{contactId}
+          method: patch 
+
+  delete:
+    handler: handler.deleteContact
+    events:
+      - httpApi:
+          path: /contact/{contactId}
+          method: delete
+
+resources:
+  Resources:
+    ContactTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "contactId"
+            AttributeType: "S"   
+        KeySchema:
+          - AttributeName: "contactId"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.tableName}

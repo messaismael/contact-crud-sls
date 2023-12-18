@@ -1,0 +1,16 @@
+{
+  "name": "sls-crud",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ismael Messa",
+  "license": "ISC",
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.474.0",
+    "@aws-sdk/lib-dynamodb": "3.476.0"
+  }
+}
