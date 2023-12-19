@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy-service:
-    name: Deployment jobs
+    name: Deploy
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -23,16 +23,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
       # - run: npm ci
 
-      - name: Echo Secret branch
-        run: echo "AWS_ACCESS_KEY_ID ${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY ${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-
       - name: Serverless Deploy
         uses: serverless/github-action@v3.2
         with:
           args: deploy --stage ${{env.stage}} --region ${{env.region}}
-          # entrypoint: /bin/bash
         env:
-          stage: ${{ contains(github.ref, 'main') && 'prod' || 'dev' }}
+          stage: ${{ contains(github.ref, 'main') && 'prod' || 'dev' }} # Set stage based of the current branch
           region: us-east-1
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
