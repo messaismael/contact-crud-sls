@@ -4,7 +4,8 @@ import {
   PutCommand,
   ScanCommand,
   DeleteCommand,
-  UpdateCommand
+  UpdateCommand,
+  GetCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const TABLE_NAME = process.env.TABLE_NAME || "";
@@ -27,7 +28,7 @@ export const createContact = async (event) => {
   try {
     await dbClient.send(command);
     return {
-      statusCode: 200,
+      statusCode: 201,
       body: JSON.stringify({
         message: "The contact has been created successfully!",
       }),
@@ -73,7 +74,7 @@ export const updateContact = async (event) => {
       statusCode: 200,
       body: JSON.stringify({
         message: "The contact has been updated successfully!",
-        response: response
+        response: response,
       }),
     };
   } catch (error) {
@@ -89,6 +90,8 @@ export const updateContact = async (event) => {
 
 export const getAllContact = async (event) => {
   const command = new ScanCommand({
+    ProjectionExpression: "contactId, #n, #num",
+    ExpressionAttributeNames: { "#n": "name", "#num": "number" },
     TableName: TABLE_NAME,
   });
 
@@ -96,13 +99,41 @@ export const getAllContact = async (event) => {
     const response = await dbClient.send(command);
     return {
       statusCode: 200,
-      body: response.Items,
+      body: JSON.stringify(response.Items)
     };
   } catch (error) {
     return {
       statusCode: 500,
       body: JSON.stringify({
         message: "Unable to get contacts!",
+        error,
+      }),
+    };
+  }
+};
+
+export const retrieveContact = async (event) => {
+  const { contactId } = event.pathParameters;
+  const command = new GetCommand({
+    TableName: TABLE_NAME,
+    Kek: {
+      contactId
+    }
+  });
+
+  try {
+    if(contactId === null) throw Error("Contact ID not provided!");
+
+    const response = await dbClient.send(command);
+    return {
+      statusCode: 200,
+      body: JSON.stringify(response.Item)
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "Unable to retrieve the contact!",
         error,
       }),
     };

@@ -27,6 +27,13 @@ functions:
       - httpApi:
           path: /contact
           method: get 
+
+  retrieve:
+    handler: handler.retrieveContact
+    events:
+      - httpApi:
+          path: /contact/{contactId}
+          method: get 
  
   create:
     handler: handler.createContact
