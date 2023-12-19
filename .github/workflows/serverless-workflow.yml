@@ -1,9 +1,10 @@
 name: Continuous Deployment Workflow
 on:
-  workflow_dispatch:      # Enable to run workflow manually through the GitHub Actions Workflow page directly
-  push:                   # Let's specify the target branch that triggers the action on new commits
+  workflow_dispatch: # Enable to run workflow manually through the GitHub Actions Workflow page directly
+  push: # Let's specify the target branch that triggers the action on new commits
     branches:
       - main
+      - develop
 
 jobs:
   deploy-service:
@@ -12,6 +13,8 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
+        stage: ${{ contains(github.ref, 'main') && 'prod' || 'dev' }}
+        region: us-east-1
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -20,14 +23,17 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: npm ci
 
       - name: Echo current branch
-        run: echo "${{ github.head_ref || github.ref_name }}"
-      
-      # - name: Build the project using a custom script
-      #   run: ./build.sh
-      #   with:
-      #     region: us-east-1
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - run: echo "? This job's status is ${{ job.status }}."
+        run: echo "${{ github.head_ref }} {{ github.ref_name }} {{matrix.stage}}"
+
+      - name: Serverless Deploy
+        uses: serverless/github-action@v3.2
+        with:
+          args: -c "serverless deploy --stage ${{matrix.stage}} --region ${{matrix.region}}"
+          entrypoint: /bin/bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - run: echo "The job's status is ${{ job.status }}."
