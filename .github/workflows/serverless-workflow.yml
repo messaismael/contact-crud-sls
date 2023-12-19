@@ -22,6 +22,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }} # use the node version provided by matrix
 
+      - name: Install and Test # Intall dependencies and run tests
+        run: npm ci && npm test
+
       - name: Serverless Deploy
         uses: serverless/github-action@v3.2 # Use Serverless Framework
         with:
