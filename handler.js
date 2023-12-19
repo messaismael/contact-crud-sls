@@ -2,9 +2,9 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   PutCommand,
-  GetCommand,
   ScanCommand,
   DeleteCommand,
+  UpdateCommand
 } from "@aws-sdk/lib-dynamodb";
 
 const TABLE_NAME = process.env.TABLE_NAME || "";
@@ -51,34 +51,31 @@ export const updateContact = async (event) => {
     if (contactId === null || contactId === "")
       throw Error("Contact Id not provided");
 
-    const getCommand = new GetCommand({
+    const command = new UpdateCommand({
       TableName: TABLE_NAME,
       Key: {
-       contactId,
+        contactId,
       },
+      ExpressionAttributeNames: {
+        "#n": "name",
+        "#num": "number",
+      },
+      UpdateExpression: "set #n = :n, #num = :num",
+      ExpressionAttributeValues: {
+        ":n": name,
+        ":num": number,
+      },
+      ReturnValues: "ALL_NEW",
     });
 
-    const putCommand = new PutCommand({
-      TableName: TABLE_NAME,
-      Item: {
-        contactId: contactId,
-        name: name,
-        number: number,
-      },
-    });
-
-    const contactResponse = await dbClient.send(getCommand);
-    if (contactResponse.Item) {
-      await dbClient.sent(putCommand);
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          message: "The contact has been created successfully!",
-        }),
-      };
-    } else {
-      throw Error("The contact doesn't exist.");
-    }
+    const response = await dbClient.send(command);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "The contact has been updated successfully!",
+        response: response
+      }),
+    };
   } catch (error) {
     return {
       statusCode: 500,
@@ -130,14 +127,14 @@ export const deleteContact = async (event) => {
       statusCode: 200,
       body: JSON.stringify({
         response,
-      }), 
+      }),
     };
   } catch (error) {
     return {
       statusCode: 500,
       body: JSON.stringify({
         message: "Unable to delete the contact!",
-        error
+        error,
       }),
     };
   }
