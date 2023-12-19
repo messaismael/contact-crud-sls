@@ -29,10 +29,12 @@ jobs:
       - name: Serverless Deploy
         uses: serverless/github-action@v3.2
         with:
-          args: -c "serverless deploy --stage ${{env.stage}} --region ${{env.region}}"
-          entrypoint: /bin/bash
+          args: deploy --stage ${{env.stage}} --region ${{env.region}}
+          # entrypoint: /bin/bash
         env:
           stage: ${{ contains(github.ref, 'main') && 'prod' || 'dev' }}
           region: us-east-1
-          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # SERVERLESS_ACCESS_KEY: { secrets.SERVERLESS_ACCESS_KEY }}
       - run: echo "The job's status is ${{ job.status }}."
