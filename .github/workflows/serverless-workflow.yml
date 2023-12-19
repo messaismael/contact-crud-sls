@@ -9,26 +9,25 @@ on:
 jobs:
   deploy-service:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Use the latest verson of Ubuntu
     strategy:
-      matrix:
+      matrix: # Use the matrix strategy to run jobs based on the combinations of node-version provided.
         node-version: [18.x]
     steps:
-      - name: Checkout
+      - name: Checkout # Get the latest verison of code source.
         uses: actions/checkout@v3
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ matrix.node-version }} # Use nodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-      # - run: npm ci
+          node-version: ${{ matrix.node-version }} # use the node version provided by matrix
 
       - name: Serverless Deploy
-        uses: serverless/github-action@v3.2
+        uses: serverless/github-action@v3.2 # Use Serverless Framework
         with:
-          args: deploy --stage ${{env.stage}} --region ${{env.region}}
+          args: deploy --stage ${{env.stage}} --region ${{env.region}} # Deploy based on the stage and, region
         env:
-          stage: ${{ contains(github.ref, 'main') && 'prod' || 'dev' }} # Set stage based of the current branch
+          stage: ${{ contains(github.ref, 'main') && 'prod' || 'dev' }} # Set stage based on the branch name
           region: us-east-1
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
