@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
+      # - run: npm ci
 
       - name: Echo current branch
         run: echo "${{ github.head_ref }} {{ github.ref_name }} {{matrix.stage}}"
