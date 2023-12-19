@@ -24,7 +24,7 @@ jobs:
       # - run: npm ci
 
       - name: Echo current branch
-        run: echo "${{ github.head_ref }} {{ github.ref_name }} {{matrix.stage}}"
+        run: echo "${{ github.ref_name }} stage ${{ contains((github.head_ref || github.ref_name), 'main') && 'prod' || 'dev' }}"
 
       - name: Serverless Deploy
         uses: serverless/github-action@v3.2
