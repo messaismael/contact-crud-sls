@@ -4,23 +4,23 @@ service: sls-crud
 frameworkVersion: "3"
 
 custom:
-  tableName: 'contacts-table-${sls:stage}'
+  tableName: 'contacts-table-${sls:stage}' # Table name based on application stage.
 
 provider:
   name: aws
   runtime: nodejs18.x
   iam:
-    role:
+    role: # Here we create a role that gives permissions to our functions on our DynamoDB table. 
       statements:
         - Effect: Allow
           Action:
             - dynamodb:*
           Resource: 
-            - Fn::GetAtt: [ ContactTable, Arn ]
+            - Fn::GetAtt: [ ContactTable, Arn ] 
   environment:
-    TABLE_NAME: ${self:custom.tableName}
+    TABLE_NAME: ${self:custom.tableName} # adding table name as environment variable.
     
-functions:
+functions: # Here we define our functions with their triggers, in our case, we trigger our function by API call.
   list:
     handler: handler.getAllContact
     events:
@@ -58,16 +58,14 @@ functions:
 
 resources:
   Resources:
-    ContactTable:
+    ContactTable: # Here we have the definition of our DynamoDb Table 
       Type: 'AWS::DynamoDB::Table'
       Properties:
         AttributeDefinitions:
           - AttributeName: "contactId"
-            AttributeType: "S"   
+            AttributeType: "S"
         KeySchema:
           - AttributeName: "contactId"
             KeyType: "HASH"
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+        BillingMode: "PAY_PER_REQUEST"
         TableName: ${self:custom.tableName}
